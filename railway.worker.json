@@ -8,6 +8,6 @@
   "deploy": {
     "startCommand": "celery -A app.workers.celery_app:celery_app worker --loglevel=INFO --concurrency=2 --queues=classification.default,classification.dead_letter",
     "restartPolicyType": "ALWAYS",
-    "drainingSeconds": "60"
+    "drainingSeconds": 60
   }
 }

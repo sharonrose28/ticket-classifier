@@ -8,6 +8,6 @@
   "deploy": {
     "startCommand": "celery -A app.workers.celery_app:celery_app beat --loglevel=INFO --schedule=/tmp/celerybeat-schedule --pidfile=/tmp/celerybeat.pid",
     "restartPolicyType": "ALWAYS",
-    "drainingSeconds": "30"
+    "drainingSeconds": 30
   }
 }
