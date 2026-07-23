@@ -7,7 +7,7 @@
   },
   "deploy": {
     "preDeployCommand": ["alembic upgrade head"],
-    "startCommand": "sh -c 'exec uvicorn app.main:app --host :: --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\"'",
+    "startCommand": "sh -c 'exec uvicorn app.main:app --host \"\" --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\"'",
     "healthcheckPath": "/ready",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ALWAYS",
