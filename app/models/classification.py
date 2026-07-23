@@ -1,0 +1,2 @@
+"""Classification attempt persistence model."""
+

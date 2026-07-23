@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-label="API documentation preview">
+  <rect width="1200" height="650" fill="#f7f8fa"/>
+  <rect width="1200" height="74" fill="#17202a"/>
+  <text x="42" y="47" fill="#fff" font-family="Arial, sans-serif" font-size="26" font-weight="700">AI Support Ticket Classifier</text>
+  <text x="1120" y="45" fill="#9fe6c2" font-family="Arial, sans-serif" font-size="16">v0.1.0</text>
+  <text x="42" y="118" fill="#263238" font-family="Arial, sans-serif" font-size="28" font-weight="700">Tickets</text>
+  <g font-family="Arial, sans-serif">
+    <rect x="42" y="145" width="1116" height="72" rx="6" fill="#e8f5e9" stroke="#49a66f"/>
+    <rect x="58" y="162" width="84" height="38" rx="4" fill="#49a66f"/>
+    <text x="76" y="187" fill="#fff" font-size="16" font-weight="700">POST</text>
+    <text x="166" y="187" fill="#263238" font-size="18" font-weight="700">/tickets</text>
+    <text x="330" y="187" fill="#546e7a" font-size="16">Create and queue a support ticket</text>
+
+    <rect x="42" y="232" width="1116" height="72" rx="6" fill="#e8f5e9" stroke="#49a66f"/>
+    <rect x="58" y="249" width="84" height="38" rx="4" fill="#49a66f"/>
+    <text x="76" y="274" fill="#fff" font-size="16" font-weight="700">POST</text>
+    <text x="166" y="274" fill="#263238" font-size="18" font-weight="700">/tickets/batch</text>
+    <text x="330" y="274" fill="#546e7a" font-size="16">Bulk intake and parallel classification</text>
+
+    <rect x="42" y="319" width="1116" height="72" rx="6" fill="#e3f2fd" stroke="#3987c9"/>
+    <rect x="58" y="336" width="84" height="38" rx="4" fill="#3987c9"/>
+    <text x="82" y="361" fill="#fff" font-size="16" font-weight="700">GET</text>
+    <text x="166" y="361" fill="#263238" font-size="18" font-weight="700">/tickets/{ticket_id}</text>
+    <text x="398" y="361" fill="#546e7a" font-size="16">Retrieve classification and assigned queue</text>
+
+    <rect x="42" y="406" width="1116" height="72" rx="6" fill="#e3f2fd" stroke="#3987c9"/>
+    <rect x="58" y="423" width="84" height="38" rx="4" fill="#3987c9"/>
+    <text x="82" y="448" fill="#fff" font-size="16" font-weight="700">GET</text>
+    <text x="166" y="448" fill="#263238" font-size="18" font-weight="700">/tickets</text>
+    <text x="330" y="448" fill="#546e7a" font-size="16">Paginated ticket collection</text>
+
+    <text x="42" y="530" fill="#263238" font-size="28" font-weight="700">Operations</text>
+    <rect x="42" y="552" width="350" height="62" rx="6" fill="#e3f2fd" stroke="#3987c9"/>
+    <text x="65" y="590" fill="#3987c9" font-size="17" font-weight="700">GET</text><text x="125" y="590" fill="#263238" font-size="17">/health</text>
+    <rect x="424" y="552" width="350" height="62" rx="6" fill="#e3f2fd" stroke="#3987c9"/>
+    <text x="447" y="590" fill="#3987c9" font-size="17" font-weight="700">GET</text><text x="507" y="590" fill="#263238" font-size="17">/ready</text>
+    <rect x="806" y="552" width="352" height="62" rx="6" fill="#e3f2fd" stroke="#3987c9"/>
+    <text x="829" y="590" fill="#3987c9" font-size="17" font-weight="700">GET</text><text x="889" y="590" fill="#263238" font-size="17">/metrics</text>
+  </g>
+</svg>

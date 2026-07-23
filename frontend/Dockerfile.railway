@@ -1,0 +1,11 @@
+FROM nginxinc/nginx-unprivileged:1.27-alpine
+
+ENV NGINX_ENVSUBST_FILTER="^(API_PRIVATE_HOST|API_PRIVATE_PORT)$"
+COPY nginx.railway.conf.template /etc/nginx/templates/default.conf.template
+COPY index.html styles.css app.js auth.css auth.js login.html signup.html /usr/share/nginx/html/
+COPY portal.css portal.js agent.html admin.html /usr/share/nginx/html/
+
+USER 101:101
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1

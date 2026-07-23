@@ -1,0 +1,13 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile",
+    "watchPatterns": ["app/**", "Dockerfile", "pyproject.toml"]
+  },
+  "deploy": {
+    "startCommand": "celery -A app.workers.celery_app:celery_app beat --loglevel=INFO --schedule=/tmp/celerybeat-schedule --pidfile=/tmp/celerybeat.pid",
+    "restartPolicyType": "ALWAYS",
+    "drainingSeconds": "30"
+  }
+}

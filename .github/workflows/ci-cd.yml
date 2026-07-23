@@ -1,0 +1,166 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.13"
+  JWT_SECRET_KEY: ci-only-jwt-secret-with-more-than-thirty-two-characters
+  SECRET_KEY: ci-only-app-secret-with-more-than-thirty-two-characters
+
+jobs:
+  quality:
+    name: Static quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install ".[test,dev]"
+      - name: Ruff
+        run: ruff check app tests
+      - name: Black
+        run: black --check app tests alembic
+      - name: MyPy
+        run: mypy app
+
+  tests:
+    name: Tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install ".[test]"
+      - name: pytest
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  migrations:
+    name: Alembic migration validation
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ticket_classifier
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: ticket_classifier
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ticket_classifier -d ticket_classifier"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+asyncpg://ticket_classifier:ci-password@localhost:5432/ticket_classifier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install .
+      - name: Upgrade and compare ORM metadata
+        run: |
+          alembic upgrade head
+          alembic check
+      - name: Verify downgrade and replay
+        run: |
+          alembic downgrade base
+          alembic upgrade head
+
+  container:
+    name: Build and publish containers
+    runs-on: ubuntu-latest
+    needs: [quality, tests, migrations]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Normalize GHCR image namespace
+        id: image_name
+        shell: bash
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: api_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image_name.outputs.prefix }}-api
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.api_meta.outputs.tags }}
+          labels: ${{ steps.api_meta.outputs.labels }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - id: frontend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image_name.outputs.prefix }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.frontend_meta.outputs.tags }}
+          labels: ${{ steps.frontend_meta.outputs.labels }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  deploy:
+    name: Optional production deployment
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: container
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Invoke deployment webhook when configured
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
+            echo "DEPLOY_WEBHOOK_URL is not configured; images were published only."
+            exit 0
+          fi
+          curl --fail --silent --show-error --retry 3 -X POST "$DEPLOY_WEBHOOK_URL"

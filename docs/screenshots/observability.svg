@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-label="Classification observability preview">
+  <rect width="1200" height="650" fill="#0f172a"/>
+  <text x="42" y="58" fill="#f8fafc" font-family="Arial, sans-serif" font-size="28" font-weight="700">Classification Observability</text>
+  <text x="42" y="88" fill="#94a3b8" font-family="Arial, sans-serif" font-size="15">Representative Prometheus telemetry</text>
+  <g font-family="Arial, sans-serif">
+    <g><rect x="42" y="120" width="255" height="120" rx="10" fill="#1e293b"/><text x="62" y="155" fill="#94a3b8" font-size="15">Tickets processed</text><text x="62" y="210" fill="#7dd3fc" font-size="38" font-weight="700">18,429</text></g>
+    <g><rect x="319" y="120" width="255" height="120" rx="10" fill="#1e293b"/><text x="339" y="155" fill="#94a3b8" font-size="15">P95 classification</text><text x="339" y="210" fill="#86efac" font-size="38" font-weight="700">1.24 s</text></g>
+    <g><rect x="596" y="120" width="255" height="120" rx="10" fill="#1e293b"/><text x="616" y="155" fill="#94a3b8" font-size="15">Cache hit rate</text><text x="616" y="210" fill="#c4b5fd" font-size="38" font-weight="700">87.6%</text></g>
+    <g><rect x="873" y="120" width="285" height="120" rx="10" fill="#1e293b"/><text x="893" y="155" fill="#94a3b8" font-size="15">Fallback activation</text><text x="893" y="210" fill="#fbbf24" font-size="38" font-weight="700">0.42%</text></g>
+    <rect x="42" y="266" width="715" height="334" rx="10" fill="#1e293b"/>
+    <text x="65" y="306" fill="#e2e8f0" font-size="18" font-weight="700">Classification latency</text>
+    <line x1="84" y1="548" x2="716" y2="548" stroke="#475569"/><line x1="84" y1="342" x2="84" y2="548" stroke="#475569"/>
+    <polyline fill="none" stroke="#38bdf8" stroke-width="4" points="84,510 142,486 200,500 258,446 316,462 374,410 432,430 490,364 548,402 606,350 664,382 716,330"/>
+    <g fill="#38bdf8"><circle cx="84" cy="510" r="5"/><circle cx="258" cy="446" r="5"/><circle cx="490" cy="364" r="5"/><circle cx="716" cy="330" r="5"/></g>
+    <rect x="779" y="266" width="379" height="334" rx="10" fill="#1e293b"/>
+    <text x="802" y="306" fill="#e2e8f0" font-size="18" font-weight="700">Queue distribution</text>
+    <text x="802" y="357" fill="#94a3b8" font-size="15">engineering</text><rect x="914" y="339" width="196" height="22" rx="4" fill="#38bdf8"/>
+    <text x="802" y="407" fill="#94a3b8" font-size="15">support</text><rect x="914" y="389" width="151" height="22" rx="4" fill="#86efac"/>
+    <text x="802" y="457" fill="#94a3b8" font-size="15">finance</text><rect x="914" y="439" width="104" height="22" rx="4" fill="#c4b5fd"/>
+    <text x="802" y="507" fill="#94a3b8" font-size="15">customer success</text><rect x="914" y="489" width="79" height="22" rx="4" fill="#fbbf24"/>
+    <text x="802" y="557" fill="#94a3b8" font-size="15">emergency</text><rect x="914" y="539" width="42" height="22" rx="4" fill="#fb7185"/>
+  </g>
+</svg>

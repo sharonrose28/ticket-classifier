@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI-assisted support ticket classification dashboard">
+  <title>SupportFlow AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="SupportFlow home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span><strong>SupportFlow</strong><small>AI operations</small></span>
+      </a>
+      <div class="topbar-actions">
+        <span id="user-label" class="user-label"></span>
+        <span class="system-status" id="system-status" role="status">
+          <span class="status-dot"></span><span id="status-label">Checking systems</span>
+        </span>
+        <button class="icon-button" id="refresh-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>
+        </button>
+        <button class="logout-button" id="logout-button" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">AI SUPPORT OPERATIONS</p>
+          <h1>Turn every ticket into<br><span>the right next action.</span></h1>
+          <p class="hero-copy">Submit customer issues, classify urgency and category, and route work to the right team automatically.</p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orb orb-one"></div><div class="orb orb-two"></div>
+          <div class="route-card route-a"><span>01</span><b>Classify</b><small>Urgency + intent</small></div>
+          <div class="route-line"></div>
+          <div class="route-card route-b"><span>02</span><b>Route</b><small>Right team, fast</small></div>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="Ticket summary">
+        <article class="stat-card"><div class="stat-icon total">◎</div><div><span>All tickets</span><strong id="stat-total">—</strong></div></article>
+        <article class="stat-card"><div class="stat-icon pending">◷</div><div><span>Awaiting AI</span><strong id="stat-pending">—</strong></div></article>
+        <article class="stat-card"><div class="stat-icon active">↻</div><div><span>Processing</span><strong id="stat-processing">—</strong></div></article>
+        <article class="stat-card"><div class="stat-icon complete">✓</div><div><span>Completed</span><strong id="stat-complete">—</strong></div></article>
+      </section>
+
+      <section class="workspace-grid">
+        <article class="panel compose-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">NEW REQUEST</p><h2>Create a support ticket</h2></div>
+            <span class="step-pill">AI-ready</span>
+          </div>
+          <form id="ticket-form" novalidate>
+            <label for="ticket-title">Ticket title</label>
+            <input id="ticket-title" name="title" type="text" minlength="1" maxlength="255" placeholder="e.g. Checkout fails during payment" required>
+            <div class="field-meta"><span id="title-error" class="field-error"></span><span id="title-count">0 / 255</span></div>
+
+            <label for="ticket-description">Describe the issue</label>
+            <textarea id="ticket-description" name="description" minlength="1" maxlength="50000" rows="7" placeholder="Share the impact, affected users, error messages, and anything already tried…" required></textarea>
+            <div class="field-meta"><span id="description-error" class="field-error"></span><span id="description-count">0 / 50,000</span></div>
+
+            <div class="form-note"><span>✦</span><p><b>What happens next?</b><br>The ticket is saved instantly, then classified and routed in the background.</p></div>
+            <button class="primary-button" id="submit-button" type="submit"><span>Classify &amp; route ticket</span><b aria-hidden="true">→</b></button>
+          </form>
+        </article>
+
+        <article class="panel recent-panel">
+          <div class="panel-heading list-heading">
+            <div><p class="eyebrow">LIVE QUEUE</p><h2>Recent tickets</h2></div>
+            <span class="last-updated" id="last-updated">Not loaded</span>
+          </div>
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="search-input" type="search" placeholder="Search tickets" aria-label="Search tickets">
+            </div>
+            <select id="status-filter" aria-label="Filter by status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="complete">Complete</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+          <div id="tickets-list" class="tickets-list" aria-live="polite">
+            <div class="empty-state"><span>⌁</span><h3>Loading tickets…</h3><p>Connecting to your support queue.</p></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+  <dialog id="ticket-dialog" class="ticket-dialog">
+    <div class="dialog-header"><div><p class="eyebrow">TICKET DETAILS</p><h2 id="dialog-title">Ticket</h2></div><button id="dialog-close" class="icon-button" aria-label="Close details">×</button></div>
+    <div id="dialog-content"></div>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
