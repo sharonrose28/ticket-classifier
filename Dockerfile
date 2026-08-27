@@ -25,6 +25,7 @@ RUN python -m pip install --no-cache-dir /wheels/*.whl \
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY scripts ./scripts
+COPY frontend ./frontend
 
 USER 10001:10001
 EXPOSE 8000

@@ -4,9 +4,11 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from redis.asyncio import Redis
 
 from app.api.middleware import (
@@ -22,6 +24,7 @@ from app.core.settings import Settings, get_settings
 from app.db.session import dispose_engine
 
 logger = logging.getLogger(__name__)
+FRONTEND_DIR = Path("/app/frontend")
 
 
 @asynccontextmanager
@@ -81,6 +84,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.middleware("http")(request_context_middleware)
     application.middleware("http")(security_headers_middleware)
     application.include_router(router)
+    # Keep the original API paths for backwards compatibility while exposing
+    # the same endpoints under /api for the bundled browser client.
+    application.include_router(router, prefix="/api", include_in_schema=False)
+    if FRONTEND_DIR.is_dir():
+        application.mount(
+            "/",
+            StaticFiles(directory=FRONTEND_DIR, html=True),
+            name="frontend",
+        )
     return application
 
 

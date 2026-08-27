@@ -8,8 +8,8 @@ __pycache__/
 htmlcov/
 .env
 .venv/
+.deploy-venv/
 dist/
 build/
 .idea/
 .vscode/
-

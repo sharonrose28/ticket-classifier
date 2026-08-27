@@ -1,0 +1,16 @@
+{
+  "name": "ticket-classifier-postgres",
+  "description": "PostgreSQL database for the ticket classifier",
+  "type": "postgresql",
+  "version": "latest",
+  "billing": {
+    "deploymentPlan": "nf-compute-20",
+    "storage": 4096,
+    "replicas": 1
+  },
+  "tlsEnabled": false,
+  "externalAccessEnabled": false,
+  "customCredentials": {
+    "dbName": "ticket_classifier"
+  }
+}
