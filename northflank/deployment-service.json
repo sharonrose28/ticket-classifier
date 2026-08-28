@@ -1,0 +1,57 @@
+{
+  "name": "ticket-classifier-web",
+  "description": "Ticket Classifier API and frontend",
+  "billing": {
+    "deploymentPlan": "nf-compute-20"
+  },
+  "deployment": {
+    "instances": 1,
+    "docker": {
+      "configType": "default"
+    },
+    "storage": {
+      "ephemeralStorage": {
+        "storageSize": 1024
+      }
+    },
+    "external": {
+      "imagePath": "ghcr.io/sharonrose28/ticket-classifier-api:latest"
+    }
+  },
+  "ports": [
+    {
+      "name": "http",
+      "internalPort": 8000,
+      "public": true,
+      "protocol": "HTTP"
+    }
+  ],
+  "runtimeEnvironment": {
+    "PORT": "8000",
+    "REDIS_ENABLED": "false",
+    "BACKGROUND_PROCESSING_ENABLED": "false"
+  },
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "type": "startupProbe",
+      "path": "/live",
+      "port": 8000,
+      "initialDelaySeconds": 10,
+      "periodSeconds": 10,
+      "timeoutSeconds": 3,
+      "failureThreshold": 12
+    },
+    {
+      "protocol": "HTTP",
+      "type": "readinessProbe",
+      "path": "/ready",
+      "port": 8000,
+      "initialDelaySeconds": 15,
+      "periodSeconds": 30,
+      "timeoutSeconds": 3,
+      "failureThreshold": 3,
+      "successThreshold": 1
+    }
+  ]
+}
