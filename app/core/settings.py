@@ -31,9 +31,11 @@ class Settings(BaseSettings):
     database_pool_timeout_seconds: float = Field(default=30.0, gt=0, le=120)
 
     redis_url: str = "redis://localhost:6379/0"
+    redis_enabled: bool = True
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
     celery_task_max_retries: int = Field(default=3, ge=0, le=10)
+    background_processing_enabled: bool = True
 
     openai_api_key: SecretStr | None = None
     openai_primary_model: str = "gpt-4.1"

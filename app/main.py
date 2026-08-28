@@ -30,12 +30,16 @@ FRONTEND_DIR = Path("/app/frontend")
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     settings: Settings = application.state.settings
-    application.state.redis = Redis.from_url(
-        settings.redis_url,
-        encoding="utf-8",
-        decode_responses=True,
-        socket_connect_timeout=2,
-        socket_timeout=2,
+    application.state.redis = (
+        Redis.from_url(
+            settings.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+        )
+        if settings.redis_enabled
+        else None
     )
     logger.info("Application started", extra={"event": "application.started"})
     try:
@@ -43,10 +47,11 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     finally:
         logger.info("Application shutdown started", extra={"event": "application.stopping"})
         try:
-            await asyncio.wait_for(
-                application.state.redis.aclose(),
-                timeout=settings.shutdown_timeout_seconds,
-            )
+            if application.state.redis is not None:
+                await asyncio.wait_for(
+                    application.state.redis.aclose(),
+                    timeout=settings.shutdown_timeout_seconds,
+                )
         except Exception:
             logger.exception("Redis shutdown failed", extra={"event": "redis.shutdown_failed"})
         try:

@@ -1,0 +1,35 @@
+{
+  "name": "ticket-classifier-config",
+  "description": "Shared production runtime configuration",
+  "type": "config",
+  "secretType": "environment",
+  "priority": 1,
+  "restrictions": {
+    "restricted": false
+  },
+  "addonDependencies": [
+    {
+      "addonId": "ticket-classifier-postgres",
+      "keys": [
+        {
+          "keyName": "POSTGRES_URI",
+          "aliases": ["DATABASE_URL"]
+        }
+      ]
+    }
+  ],
+  "secrets": {
+    "variables": {
+      "APP_ENV": "production",
+      "DEBUG": "false",
+      "LOG_LEVEL": "INFO",
+      "AUTH_COOKIE_SECURE": "true",
+      "CORS_ALLOWED_ORIGINS": "[]",
+      "CORS_ALLOW_CREDENTIALS": "false",
+      "RATE_LIMIT_ENABLED": "true",
+      "REDIS_ENABLED": "false",
+      "BACKGROUND_PROCESSING_ENABLED": "false",
+      "CELERY_WORKER_CONCURRENCY": "2"
+    }
+  }
+}

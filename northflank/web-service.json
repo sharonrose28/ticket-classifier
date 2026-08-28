@@ -1,0 +1,78 @@
+{
+  "name": "ticket-classifier-web",
+  "description": "Ticket Classifier API and frontend",
+  "billing": {
+    "deploymentPlan": "nf-compute-20",
+    "buildPlan": "nf-compute-200-8"
+  },
+  "deployment": {
+    "instances": 1,
+    "docker": {
+      "configType": "default"
+    },
+    "storage": {
+      "ephemeralStorage": {
+        "storageSize": 1024
+      }
+    }
+  },
+  "ports": [
+    {
+      "name": "http",
+      "internalPort": 8000,
+      "public": true,
+      "protocol": "HTTP"
+    }
+  ],
+  "buildSource": "git",
+  "vcsData": {
+    "projectUrl": "https://github.com/sharonrose28/ticket-classifier",
+    "projectType": "github",
+    "accountLogin": "sharonrose28",
+    "projectBranch": "main"
+  },
+  "buildSettings": {
+    "storage": {
+      "ephemeralStorage": {
+        "storageSize": 16384
+      }
+    },
+    "dockerfile": {
+      "buildEngine": "buildkit",
+      "dockerFilePath": "/Dockerfile",
+      "dockerWorkDir": "/",
+      "buildkit": {
+        "useCache": true,
+        "cacheStorageSize": 4096
+      }
+    }
+  },
+  "runtimeEnvironment": {
+    "PORT": "8000",
+    "REDIS_ENABLED": "false",
+    "BACKGROUND_PROCESSING_ENABLED": "false"
+  },
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "type": "startupProbe",
+      "path": "/live",
+      "port": 8000,
+      "initialDelaySeconds": 10,
+      "periodSeconds": 10,
+      "timeoutSeconds": 3,
+      "failureThreshold": 12
+    },
+    {
+      "protocol": "HTTP",
+      "type": "readinessProbe",
+      "path": "/ready",
+      "port": 8000,
+      "initialDelaySeconds": 15,
+      "periodSeconds": 30,
+      "timeoutSeconds": 3,
+      "failureThreshold": 3,
+      "successThreshold": 1
+    }
+  ]
+}

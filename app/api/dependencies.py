@@ -47,7 +47,14 @@ def get_ticket_service(request: Request, session: SessionDep, user: CurrentUserD
         getattr(request.app.state, "redis", None),
         ttl_seconds=settings.ticket_cache_ttl_seconds,
     )
-    return TicketService(session, cache=cache, current_user=user)
+    return TicketService(
+        session,
+        cache=cache,
+        current_user=user,
+        background_processing_enabled=getattr(
+            settings, "background_processing_enabled", True
+        ),
+    )
 
 
 TicketServiceDep = Annotated[TicketService, Depends(get_ticket_service)]

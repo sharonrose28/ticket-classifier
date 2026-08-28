@@ -47,6 +47,7 @@ class TicketService:
         batch_task_dispatcher: BatchTaskDispatcher = _dispatch_classification_batch,
         cache: TicketCache | None = None,
         current_user: User | None = None,
+        background_processing_enabled: bool = True,
     ) -> None:
         self.session = session
         self.repository = TicketRepository(session)
@@ -54,6 +55,7 @@ class TicketService:
         self.batch_task_dispatcher = batch_task_dispatcher
         self.cache = cache
         self.current_user = current_user
+        self.background_processing_enabled = background_processing_enabled
 
     async def create(self, payload: TicketCreate) -> Ticket:
         if self.current_user is not None and self.current_user.role not in {UserRole.CUSTOMER, UserRole.ADMIN}:
@@ -63,6 +65,12 @@ class TicketService:
             customer_id=self.current_user.id if self.current_user else None,
         )
         await self.session.commit()
+        if not self.background_processing_enabled:
+            logger.warning(
+                "Ticket saved with background classification disabled",
+                extra={"event": "ticket.classification.disabled", "ticket_id": str(ticket.id)},
+            )
+            return ticket
         try:
             task_id = self.task_dispatcher(ticket.id)
         except Exception as exc:
@@ -90,6 +98,9 @@ class TicketService:
             customer_id=self.current_user.id if self.current_user else None,
         )
         await self.session.commit()
+        if not self.background_processing_enabled:
+            BATCH_SIZE.observe(len(tickets))
+            return tickets, None
         try:
             result = self.batch_task_dispatcher([ticket.id for ticket in tickets])
         except Exception as exc:

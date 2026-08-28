@@ -61,23 +61,24 @@ async def ready():
         )
 
     settings = get_settings()
-    redis_client: Redis | None = None
-    try:
-        redis_client = Redis.from_url(
-            settings.celery_broker_url,
-            socket_connect_timeout=2,
-            socket_timeout=2,
-        )
-        await redis_client.ping()
-    except Exception as exc:
-        redis_status = "unavailable"
-        logger.warning(
-            "Readiness Redis check failed",
-            extra={"event": "readiness.redis.failed", "error_type": type(exc).__name__},
-        )
-    finally:
-        if redis_client is not None:
-            await redis_client.aclose()
+    if settings.redis_enabled:
+        redis_client: Redis | None = None
+        try:
+            redis_client = Redis.from_url(
+                settings.celery_broker_url,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
+            await redis_client.ping()
+        except Exception as exc:
+            redis_status = "unavailable"
+            logger.warning(
+                "Readiness Redis check failed",
+                extra={"event": "readiness.redis.failed", "error_type": type(exc).__name__},
+            )
+        finally:
+            if redis_client is not None:
+                await redis_client.aclose()
 
     payload = {
         "status": "ready"
