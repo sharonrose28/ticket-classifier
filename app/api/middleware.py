@@ -101,7 +101,7 @@ async def security_headers_middleware(request: Request, call_next) -> Response:
 
 
 def _content_security_policy(path: str) -> str:
-    """Allow only the assets required by FastAPI's built-in documentation UI."""
+    """Allow only the assets required by the requested browser surface."""
 
     if path in {"/docs", "/redoc"}:
         return (
@@ -110,5 +110,16 @@ def _content_security_policy(path: str) -> str:
             "style-src 'unsafe-inline' https://cdn.jsdelivr.net; "
             "img-src data: https://fastapi.tiangolo.com; "
             "font-src data:; connect-src 'self'; frame-ancestors 'none'"
+        )
+    if path == "/" or path.endswith((".html", ".css", ".js")):
+        return (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' https://fonts.googleapis.com; "
+            "font-src https://fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "object-src 'none'; base-uri 'self'; form-action 'self'; "
+            "frame-ancestors 'none'"
         )
     return "default-src 'none'; frame-ancestors 'none'"

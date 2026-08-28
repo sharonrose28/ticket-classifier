@@ -1,5 +1,3 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -95,3 +93,12 @@ def test_security_headers_and_exception_sanitization():
     assert docs.status_code == 200
     assert "https://cdn.jsdelivr.net" in docs.headers["Content-Security-Policy"]
     assert "connect-src 'self'" in docs.headers["Content-Security-Policy"]
+
+    with TestClient(application) as client:
+        frontend = client.get("/")
+    frontend_csp = frontend.headers["Content-Security-Policy"]
+    assert "script-src 'self'" in frontend_csp
+    assert "style-src 'self' https://fonts.googleapis.com" in frontend_csp
+    assert "font-src https://fonts.gstatic.com" in frontend_csp
+    assert "connect-src 'self'" in frontend_csp
+    assert "'unsafe-inline'" not in frontend_csp
