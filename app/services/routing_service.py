@@ -1,12 +1,24 @@
 """Deterministic and auditable ticket routing rules."""
 
-from app.schemas.classification import TicketClassification
+from app.schemas.classification import (
+    ClassificationCategory,
+    ClassificationUrgency,
+    TicketClassification,
+)
 
-SUPPORT_QUEUE = "support"
+CATEGORY_QUEUES: dict[ClassificationCategory, str] = {
+    ClassificationCategory.TECHNICAL: "engineering",
+    ClassificationCategory.BUG: "engineering",
+    ClassificationCategory.BILLING: "finance",
+    ClassificationCategory.ACCOUNT: "customer-success",
+    ClassificationCategory.GENERAL: "support",
+}
 
 
 class RoutingService:
-    """Route every classified ticket to the central support team."""
+    """Route classifications to the responsible operational department."""
 
     def assign_queue(self, classification: TicketClassification) -> str:
-        return SUPPORT_QUEUE
+        if classification.urgency is ClassificationUrgency.CRITICAL:
+            return "emergency"
+        return CATEGORY_QUEUES[classification.category]

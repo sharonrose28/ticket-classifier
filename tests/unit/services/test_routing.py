@@ -7,11 +7,11 @@ from app.services.routing_service import RoutingService
 @pytest.mark.parametrize(
     ("urgency", "category", "expected"),
     [
-        ("critical", "billing", "support"),
-        ("high", "technical", "support"),
-        ("medium", "bug", "support"),
-        ("medium", "billing", "support"),
-        ("low", "account", "support"),
+        ("critical", "billing", "emergency"),
+        ("high", "technical", "engineering"),
+        ("medium", "bug", "engineering"),
+        ("medium", "billing", "finance"),
+        ("low", "account", "customer-success"),
         ("low", "general", "support"),
     ],
 )

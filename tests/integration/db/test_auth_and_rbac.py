@@ -68,7 +68,7 @@ async def test_customer_can_only_access_owned_tickets(session):
 
 
 @pytest.mark.asyncio
-async def test_agent_can_mutate_only_assigned_ticket_and_admin_can_assign(session):
+async def test_agents_can_work_all_tickets_and_admin_can_assign(session):
     customer = User(
         full_name="Customer", email="c@example.com", password_hash="x", role=UserRole.CUSTOMER
     )
@@ -104,11 +104,12 @@ async def test_agent_can_mutate_only_assigned_ticket_and_admin_can_assign(sessio
         ),
     )
     TicketRead.model_validate(corrected)
-    assert corrected.category == "billing" and corrected.assigned_queue == "support"
-    with pytest.raises(AuthorizationError):
-        await TicketService(
-            session, task_dispatcher=lambda _id: None, current_user=other_agent
-        ).update_status(ticket.id, TicketStatus.COMPLETE)
+    assert corrected.category == "billing" and corrected.assigned_queue == "finance"
+    other_agent_service = TicketService(
+        session, task_dispatcher=lambda _id: None, current_user=other_agent
+    )
+    assert (await other_agent_service.get(ticket.id)).id == ticket.id
+    await other_agent_service.update_status(ticket.id, TicketStatus.COMPLETE)
     inactive = User(
         full_name="Inactive",
         email="inactive@example.com",

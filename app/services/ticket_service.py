@@ -168,9 +168,7 @@ class TicketService:
                     self.current_user.id, limit=limit, offset=offset
                 )
             if self.current_user.role is UserRole.SUPPORT_AGENT:
-                return await self.repository.list_for_agent(
-                    self.current_user.id, limit=limit, offset=offset
-                )
+                return await self.repository.list(limit=limit, offset=offset)
         return await self.repository.list(limit=limit, offset=offset)
 
     async def update_status(self, ticket_id: uuid.UUID, status: TicketStatus) -> Ticket:
@@ -227,20 +225,13 @@ class TicketService:
             and ticket.customer_id == self.current_user.id
         ):
             return
-        if (
-            self.current_user.role is UserRole.SUPPORT_AGENT
-            and ticket.assigned_agent_id == self.current_user.id
-        ):
+        if self.current_user.role is UserRole.SUPPORT_AGENT:
             return
         raise AuthorizationError()
 
     def _authorize_agent(self, ticket: Ticket) -> None:
         if self.current_user is not None and self.current_user.role is UserRole.ADMIN:
             return
-        if (
-            self.current_user is not None
-            and self.current_user.role is UserRole.SUPPORT_AGENT
-            and ticket.assigned_agent_id == self.current_user.id
-        ):
+        if self.current_user is not None and self.current_user.role is UserRole.SUPPORT_AGENT:
             return
         raise AuthorizationError()
