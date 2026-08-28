@@ -68,6 +68,10 @@ class ClassificationService:
         ticket.retry_count += result.attempt_count - 1
         ticket.status = TicketStatus.COMPLETE
         await self.session.commit()
+        # PostgreSQL server-side timestamps are expired after UPDATE. Refresh while
+        # still inside the async session so response serialization never triggers
+        # implicit synchronous I/O (MissingGreenlet).
+        await self.session.refresh(ticket)
         CLASSIFICATION_LATENCY.observe(ticket.processing_time / 1000)
         TICKETS_PROCESSED.labels(status="complete").inc()
         logger.info(

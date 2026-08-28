@@ -35,9 +35,9 @@ async def test_complete_classification_flow_updates_database(session):
     ticket = await repository.create(title="Outage", description="Production is down")
     await session.commit()
 
-    result = await ClassificationService(
-        session, openai_service=FakeOpenAIService()
-    ).process(ticket.id)
+    result = await ClassificationService(session, openai_service=FakeOpenAIService()).process(
+        ticket.id
+    )
 
     assert result.status is TicketStatus.COMPLETE
     assert result.urgency.value == "critical"
@@ -58,7 +58,27 @@ async def test_completed_ticket_is_idempotent(session):
     ticket.status = TicketStatus.COMPLETE
     await session.commit()
 
-    result = await ClassificationService(
-        session, openai_service=SimpleNamespace()
-    ).process(ticket.id)
+    result = await ClassificationService(session, openai_service=SimpleNamespace()).process(
+        ticket.id
+    )
     assert result.status is TicketStatus.COMPLETE
+
+
+@pytest.mark.asyncio
+async def test_no_key_fallback_completes_database_workflow(session, monkeypatch):
+    repository = TicketRepository(session)
+    ticket = await repository.create(
+        title="Payment outage",
+        description="All customers cannot complete payment in production.",
+    )
+    await session.commit()
+    monkeypatch.setattr(
+        "app.services.classification_service.get_settings",
+        lambda: SimpleNamespace(openai_api_key=None),
+    )
+
+    result = await ClassificationService(session).process(ticket.id)
+
+    assert result.status is TicketStatus.COMPLETE
+    assert result.llm_model == "local-rule-fallback-v1"
+    assert result.assigned_queue == "emergency"
