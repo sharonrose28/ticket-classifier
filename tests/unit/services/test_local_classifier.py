@@ -25,3 +25,22 @@ async def test_local_classifier_has_safe_general_defaults():
 
     assert result.classification.urgency is ClassificationUrgency.LOW
     assert result.classification.category is ClassificationCategory.GENERAL
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("description", "expected"),
+    [
+        ("I was charged twice on my subscription invoice.", ClassificationCategory.BILLING),
+        ("The API webhook connection keeps timing out.", ClassificationCategory.TECHNICAL),
+        ("The application closes instantly when I save.", ClassificationCategory.BUG),
+        ("I am locked out and cannot reset my password.", ClassificationCategory.ACCOUNT),
+        ("Where can I find the product documentation?", ClassificationCategory.GENERAL),
+    ],
+)
+async def test_local_classifier_detects_content_category(description, expected):
+    result = await LocalClassificationService().classify_ticket(
+        title="Customer request", description=description
+    )
+
+    assert result.classification.category is expected

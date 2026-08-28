@@ -42,7 +42,7 @@ async def test_complete_classification_flow_updates_database(session):
     assert result.status is TicketStatus.COMPLETE
     assert result.urgency.value == "critical"
     assert result.category == "technical"
-    assert result.assigned_queue == "emergency"
+    assert result.assigned_queue == "support"
     assert float(result.confidence) == 0.97
     assert result.llm_model == "gpt-4.1"
     assert result.tokens_used == 100
@@ -81,4 +81,4 @@ async def test_no_key_fallback_completes_database_workflow(session, monkeypatch)
 
     assert result.status is TicketStatus.COMPLETE
     assert result.llm_model == "local-rule-fallback-v1"
-    assert result.assigned_queue == "emergency"
+    assert result.assigned_queue == "support"

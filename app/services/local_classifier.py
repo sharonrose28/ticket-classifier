@@ -1,5 +1,6 @@
 """Deterministic last-resort classification when no LLM credential is available."""
 
+import re
 import time
 
 from app.schemas.classification import (
@@ -37,15 +38,72 @@ class LocalClassificationService:
 
     @staticmethod
     def _category(text: str) -> ClassificationCategory:
-        if any(word in text for word in ("invoice", "billing", "charged", "payment", "refund")):
-            return ClassificationCategory.BILLING
-        if any(word in text for word in ("bug", "crash", "exception", "stack trace", "500 error")):
-            return ClassificationCategory.BUG
-        if any(word in text for word in ("password", "login", "account", "locked", "profile")):
-            return ClassificationCategory.ACCOUNT
-        if any(word in text for word in ("api", "server", "database", "technical", "integration")):
-            return ClassificationCategory.TECHNICAL
-        return ClassificationCategory.GENERAL
+        terms = {
+            ClassificationCategory.BILLING: (
+                "bill",
+                "billing",
+                "invoice",
+                "payment",
+                "charged",
+                "charge",
+                "refund",
+                "price",
+                "pricing",
+                "subscription",
+                "card",
+                "checkout",
+            ),
+            ClassificationCategory.TECHNICAL: (
+                "api",
+                "server",
+                "database",
+                "integration",
+                "network",
+                "timeout",
+                "latency",
+                "configuration",
+                "install",
+                "connection",
+                "webhook",
+            ),
+            ClassificationCategory.BUG: (
+                "bug",
+                "crash",
+                "crashes",
+                "crashed",
+                "exception",
+                "stack trace",
+                "500 error",
+                "not working",
+                "broken",
+                "freezes",
+                "closes instantly",
+                "unexpected behavior",
+                "blank screen",
+            ),
+            ClassificationCategory.ACCOUNT: (
+                "account",
+                "password",
+                "login",
+                "log in",
+                "sign in",
+                "locked out",
+                "profile",
+                "email address",
+                "verification",
+                "credentials",
+                "permission",
+                "access denied",
+            ),
+        }
+        scores = {
+            category: sum(
+                1 for term in category_terms if re.search(rf"\b{re.escape(term)}\b", text)
+            )
+            for category, category_terms in terms.items()
+        }
+        best_category, best_score = max(scores.items(), key=lambda item: item[1])
+        return best_category if best_score else ClassificationCategory.GENERAL
 
     @staticmethod
     def _urgency(text: str) -> ClassificationUrgency:
