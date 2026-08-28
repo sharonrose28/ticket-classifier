@@ -29,6 +29,7 @@
       "RATE_LIMIT_ENABLED": "true",
       "REDIS_ENABLED": "false",
       "BACKGROUND_PROCESSING_ENABLED": "false",
+      "INLINE_CLASSIFICATION_ENABLED": "true",
       "CELERY_WORKER_CONCURRENCY": "2"
     }
   }

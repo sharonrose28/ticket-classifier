@@ -1,8 +1,7 @@
 """Validated environment configuration for API and worker processes."""
 
-from functools import lru_cache
-
 from decimal import Decimal
+from functools import lru_cache
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -36,6 +35,7 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://localhost:6379/2"
     celery_task_max_retries: int = Field(default=3, ge=0, le=10)
     background_processing_enabled: bool = True
+    inline_classification_enabled: bool = False
 
     openai_api_key: SecretStr | None = None
     openai_primary_model: str = "gpt-4.1"
@@ -105,9 +105,15 @@ class Settings(BaseSettings):
             raise ValueError("Wildcard CORS origins cannot be used with credentials")
         if self.app_env == "production" and self.debug:
             raise ValueError("DEBUG must be false in production")
-        if self.app_env == "production" and self.jwt_secret_key.get_secret_value() == "development-only-change-me":
+        if (
+            self.app_env == "production"
+            and self.jwt_secret_key.get_secret_value() == "development-only-change-me"
+        ):
             raise ValueError("JWT_SECRET_KEY must be configured in production")
-        if self.app_env == "production" and self.secret_key.get_secret_value() == "development-only-change-me":
+        if (
+            self.app_env == "production"
+            and self.secret_key.get_secret_value() == "development-only-change-me"
+        ):
             raise ValueError("SECRET_KEY must be configured in production")
         if self.app_env == "production":
             jwt_secret = self.jwt_secret_key.get_secret_value()

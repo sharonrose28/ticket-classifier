@@ -110,7 +110,10 @@ async function submitTicket(event) {
   elements.submit.disabled = true; elements.submit.querySelector("span").textContent = "Saving ticket…";
   try {
     const ticket = await api("/tickets", { method: "POST", body: JSON.stringify({ title: elements.title.value.trim(), description: elements.description.value.trim() }) });
-    upsertTicket(ticket); elements.form.reset(); updateCounts(); toast("Ticket accepted", "AI classification is running in the background."); pollTicket(ticket.id);
+    upsertTicket(ticket); elements.form.reset(); updateCounts();
+    if (ticket.status === "complete") toast("Classification complete", `Routed to ${ticket.assigned_queue}.`);
+    else if (ticket.status === "failed") toast("Classification failed", "The AI service could not classify this ticket. Please try again later.", true);
+    else { toast("Ticket accepted", "AI classification is running."); pollTicket(ticket.id); }
   } catch (error) { toast("Ticket was not created", error.message, true); }
   finally { elements.submit.disabled = false; elements.submit.querySelector("span").textContent = "Classify & route ticket"; }
 }

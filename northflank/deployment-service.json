@@ -29,7 +29,8 @@
   "runtimeEnvironment": {
     "PORT": "8000",
     "REDIS_ENABLED": "false",
-    "BACKGROUND_PROCESSING_ENABLED": "false"
+    "BACKGROUND_PROCESSING_ENABLED": "false",
+    "INLINE_CLASSIFICATION_ENABLED": "true"
   },
   "healthChecks": [
     {

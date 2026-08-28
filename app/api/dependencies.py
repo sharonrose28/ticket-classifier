@@ -5,13 +5,14 @@ from typing import Annotated
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import session_scope
-from app.services.ticket_service import TicketService
-from app.services.cache_service import TicketCache
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import decode_access_token
+from app.db.session import session_scope
 from app.models.user import User, UserRole
 from app.repositories.users import UserRepository
+from app.services.cache_service import TicketCache
+from app.services.classification_service import ClassificationService
+from app.services.ticket_service import TicketService
 
 SessionDep = Annotated[AsyncSession, Depends(session_scope)]
 
@@ -36,10 +37,13 @@ def require_roles(*roles: UserRole):
         if user.role not in roles:
             raise AuthorizationError()
         return user
+
     return dependency
 
 
-def get_ticket_service(request: Request, session: SessionDep, user: CurrentUserDep) -> TicketService:
+def get_ticket_service(
+    request: Request, session: SessionDep, user: CurrentUserDep
+) -> TicketService:
     """Construct a request-scoped service with its transaction-scoped session."""
 
     settings = request.app.state.settings
@@ -51,8 +55,11 @@ def get_ticket_service(request: Request, session: SessionDep, user: CurrentUserD
         session,
         cache=cache,
         current_user=user,
-        background_processing_enabled=getattr(
-            settings, "background_processing_enabled", True
+        background_processing_enabled=getattr(settings, "background_processing_enabled", True),
+        inline_classifier=(
+            ClassificationService(session).process
+            if getattr(settings, "inline_classification_enabled", False)
+            else None
         ),
     )
 

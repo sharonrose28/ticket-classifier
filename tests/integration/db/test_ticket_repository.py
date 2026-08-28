@@ -56,6 +56,40 @@ async def test_ticket_service_commits_then_dispatches(session):
 
 
 @pytest.mark.asyncio
+async def test_ticket_service_classifies_inline_when_background_is_disabled(session):
+    classified = make_ticket(status=TicketStatus.COMPLETE)
+    inline_classifier = AsyncMock(return_value=classified)
+    service = TicketService(
+        session,
+        background_processing_enabled=False,
+        inline_classifier=inline_classifier,
+    )
+
+    result = await service.create(
+        TicketCreate(title="Payment declined", description="Checkout is blocked")
+    )
+
+    assert result is classified
+    inline_classifier.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_inline_classification_failure_marks_ticket_failed(session):
+    service = TicketService(
+        session,
+        background_processing_enabled=False,
+        inline_classifier=AsyncMock(side_effect=TimeoutError("provider timeout")),
+    )
+
+    ticket = await service.create(
+        TicketCreate(title="Payment declined", description="Checkout is blocked")
+    )
+
+    assert ticket.status is TicketStatus.FAILED
+    assert await session.scalar(select(DeadLetter.id)) is not None
+
+
+@pytest.mark.asyncio
 async def test_ticket_service_batch_commits_once_and_dispatches_group(session):
     dispatched = []
 
@@ -116,9 +150,7 @@ async def test_terminal_failure_creates_durable_dead_letter(session):
     await session.commit()
 
     underlying = TimeoutError("provider timeout")
-    error = OpenAIRetriesExhaustedError(
-        model="gpt-4.1", attempts=5, cause=underlying
-    )
+    error = OpenAIRetriesExhaustedError(model="gpt-4.1", attempts=5, cause=underlying)
     await ClassificationService(session).record_failure(
         ticket.id,
         will_retry=False,
