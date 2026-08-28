@@ -8,11 +8,13 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.exceptions import TicketNotFoundError
 from app.core.telemetry import CLASSIFICATION_LATENCY, TICKETS_PROCESSED
 from app.models.dead_letter import DeadLetter
 from app.models.ticket import Ticket, TicketStatus, TicketUrgency
 from app.repositories.tickets import TicketRepository
+from app.services.local_classifier import LocalClassificationService
 from app.services.openai_service import OpenAIRetriesExhaustedError, OpenAIService
 from app.services.routing_service import RoutingService
 
@@ -44,10 +46,8 @@ class ClassificationService:
             return ticket
 
         title, description = ticket_input
-        openai_service = self.openai_service or OpenAIService()
-        result = await openai_service.classify_ticket(
-            title=title, description=description
-        )
+        openai_service = self.openai_service or self._default_classifier()
+        result = await openai_service.classify_ticket(title=title, description=description)
         assigned_queue = self.routing_service.assign_queue(result.classification)
 
         ticket = await self.repository.get_for_update(ticket_id)
@@ -63,9 +63,7 @@ class ClassificationService:
         ticket.confidence = Decimal(str(result.classification.confidence))
         ticket.llm_model = result.model
         ticket.tokens_used = result.total_tokens
-        ticket.processing_time = max(
-            0, round((time.perf_counter() - started_at) * 1000)
-        )
+        ticket.processing_time = max(0, round((time.perf_counter() - started_at) * 1000))
         ticket.estimated_cost_usd = Decimal(str(result.estimated_cost_usd))
         ticket.retry_count += result.attempt_count - 1
         ticket.status = TicketStatus.COMPLETE
@@ -89,6 +87,17 @@ class ClassificationService:
         )
         return ticket
 
+    @staticmethod
+    def _default_classifier() -> OpenAIService | LocalClassificationService:
+        settings = get_settings()
+        if settings.openai_api_key is None or not settings.openai_api_key.get_secret_value():
+            logger.warning(
+                "OpenAI credential unavailable; using deterministic fallback",
+                extra={"event": "ticket.classification.local_fallback"},
+            )
+            return LocalClassificationService()
+        return OpenAIService(settings=settings)
+
     async def record_failure(
         self,
         ticket_id: uuid.UUID,
@@ -103,9 +112,7 @@ class ClassificationService:
             await self.session.rollback()
             return
         retry_increment = (
-            max(0, error.attempts - 1)
-            if isinstance(error, OpenAIRetriesExhaustedError)
-            else 1
+            max(0, error.attempts - 1) if isinstance(error, OpenAIRetriesExhaustedError) else 1
         )
         ticket.retry_count += retry_increment
         ticket.status = TicketStatus.PENDING if will_retry else TicketStatus.FAILED
